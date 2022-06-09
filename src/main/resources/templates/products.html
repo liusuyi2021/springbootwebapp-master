@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+
+    <title>新中新温度检测记录</title>
+
+    <!--/*/ <th:block th:include="fragments/headerinc :: head"></th:block> /*/--> 
+  <style>
+        a{text-decoration: none}
+        .content{width:1000px;margin:0 auto;padding-top:50px;}
+        .left-col{float:left;width:700px}
+        .right-col{float:right;width:300px}
+        table{width:100%}
+        table{border-collapse:collapse;border-spacing: 0}
+        table tr{border:1px solid #ccc;height:30px;}
+        table td{border:1px solid #ccc;} 
+        .p-content{display:inline-block}
+      .div0 {
+          /*display: flex; 
+              justify-content: center;
+          */
+          width: 100%;
+          float: left;
+          background-color: #eee;
+          padding-top: 20px;
+      }
+      .logo {
+          width: 100%;
+          height: 40px;
+          position: relative;
+          float: left;
+          background-color: #fff;
+          padding-top:10px;
+      }
+          .logo img {
+              width: 100px;
+              height: 25px;
+              position: relative;
+              float: left;
+          }
+      #TPname {
+          font-size: 32px;
+      }
+      .sousuo{
+          width:50%;
+          float:left;
+      }
+      .gaowen {
+          float: left;
+          width: 50%;
+          height: 50px;
+          margin: 0;
+          padding: 25px;
+          color:#ff3f3f;
+      }
+      #pic {
+          border: 1px solid #01AAED;
+      }
+      .dataname {
+          position: relative;
+          float: left;
+          padding: 0 10px 10px 20px;
+      }
+      .datatamp {
+          position: relative;
+          float: left;
+          padding: 0 20px 10px 20px;
+      }
+      .datarecord {
+          position: relative;
+          float: left;
+          padding: 0 0 10px 20px;
+      }
+      .tcdPageCode{padding: 15px 20px;text-align: left;color: #ccc;text-align:center;} 
+.tcdPageCode a{display: inline-block;color: #428bca;display: inline-block;height: 25px; line-height: 25px; padding: 0 10px;border: 1px solid #ddd; margin: 0 2px;border-radius: 4px;vertical-align: middle;} 
+.tcdPageCode a:hover{text-decoration: none;border: 1px solid #428bca;} 
+.tcdPageCode span.current{display: inline-block;height: 25px;line-height: 25px;padding: 0 10px;margin: 0 2px;color: #fff;background-color: #428bca; border: 1px solid #428bca;border-radius: 4px;vertical-align: middle;} 
+.tcdPageCode span.disabled{ display: inline-block;height: 25px;line-height: 25px;padding: 0 10px;margin: 0 2px; color: #bfbfbf;background: #f2f2f2;border: 1px solid #bfbfbf;border-radius: 4px;vertical-align: middle;} 
+    </style>
+</head>
+<body>
+
+    <div class="container  logo"><img src="/img/logo.png"/></div>
+<div class="div0"> 
+	<div class="container" style="width:60%;float: left;">
+	    <!--/*/ <th:block th:include="fragments/header :: header"></th:block> /*/-->
+	    <div >  
+	        <table class="table table-striped">
+	            <tr>
+	                <th>Id</th>
+	                <th>姓名</th>
+	                <th>温度</th> 
+	                <th>时间</th> 
+	            </tr> 
+	        </table>
+	         <div class="pages">
+	              <span class="counts">共<em></em>条</span>
+	              <span class="page">共<em></em>页</span> 
+	              <div class="tcdPageCode"></div>
+	          </div>
+	           
+	    </div>
+	</div>
+
+    <div class="jumbotron" style="width:30%;float: left;padding-top:0px;margin-left:5%">
+           <div>
+                <label class="sousuo">
+                    按姓名搜索：
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="name" id="name" class="form-control">
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-info btn-flat"  onclick="getdata(1);">搜索</button>
+                            <button type="button" class="btn btn-info btn-flat"  onclick="excelDownload();" >导出</button>
+                        </span>
+                    </div>
+                </label> 
+                <div class="checkbox gaowen" style="float: left;">
+                    <label><input type="checkbox"  name="wendu" id="wendu" value="37.3">高温</label>
+                </div>
+        </div>
+        <div class=""><!-- row text-center -->
+            <img id="pic" src="/images/NewBannerBOOTS_2.png" width="420" height="300">
+         </div>
+        <div class="">
+            <div class="">
+                <h2 id="TPname"></h2>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+    
+<!--初始化代码-->
+
+<script type="text/javascript"  >
+$(document).ready(function() {
+   console.info("ssssssss");
+    
+   
+   var t2 = window.setInterval(function() { getNewData();  },1000);
+});
+
+
+var _pages=0
+var _c=1;
+getdata(_c); 
+
+function getdata(curpage){
+	var temp=$("input[name='wendu']:checked").val();
+	if(!temp){temp="0"}
+  $.ajax({
+      type :"post",
+      url :'/getproductsPage1',
+      data:{
+          "page":curpage, 
+          "name":$("#name").val(),
+          "wendu":temp,
+          "size":10
+      },
+      beforeSend:function(){
+          $(".piclist tbody").html("正在加载。。。")
+      },
+      success:function (res) {
+          $(".piclist tbody").find("*").remove();
+          var data = $.parseJSON(res);
+          var couts=data.recordsTotal;
+          var pagess=data.recordsTotalPages;
+          var data=data.data; 
+    	  var tempStr;
+    	  var faceidStr;
+          if(data){
+        	  $(".table-striped").empty();
+              var headContent = `<tr>
+              <th width='5%'>Id</th>
+              <th width='10%'>姓名</th>
+              <th width='10%'>工号</th>
+              <th width='5%'>温度</th> 
+              <th width='15%'>时间</th> 
+              <th width='5%'>操作</th> 
+           </tr>`;
+           $(".table-striped").append(headContent);
+           
+           for(var i in data){ 
+        	  // if(i==0){showView(data)};
+        	  tempStr=data[i].temp;
+        	  faceidStr=data[i].faceid;
+        	  if(tempStr>=37.3){
+        		  tempStr="<font color='red'>"+tempStr+"</font>";
+        	  }
+        	  if(!faceidStr){faceidStr=""}
+                var deviceContent = `<tr>
+                 <td>`+data[i].id+`</td>
+                 <td>`+data[i].name+`</td>
+                 <td>`+faceidStr+`</td>
+                 <td>`+tempStr+`</td>
+                 <td>`+data[i].record_time+`</td>
+                 <td class="input-group-btn" > <button type="button" style="padding: 0px 6px 0px 6px;" class="btn btn-info btn-flat"  onclick='showViewData("`+data[i].name+`","`+data[i].temp+`","`+data[i].image_Url+`","`+data[i].record_time+`");'>查看</button></td>
+              </tr>`;
+                
+                $(".table-striped").append(deviceContent);
+            
+              }
+            }
+          
+          $(".tcdPageCode").off("click");
+          $(".tcdPageCode").createPage({
+        		pageCount:pagess,
+        		current:curpage,
+        		backFn:function(p){
+        		//单击回调方法，p是当前页码
+        			getdata(p);
+        		}
+        	});
+          
+          $(".counts em").text(couts);
+          var _p= Math.ceil(couts/4);
+          $(".page em").text(pagess);
+          _pages=pagess;
+      },
+      complete:function () { 
+      }
+  });
+};
+
+ 
+
+function excelDownload(){
+	var temp=$("input[name='wendu']:checked").val();
+	if(!temp){temp="0"}
+	window.open("/excelDownload?name="+$("#name").val()+"&wendu="+temp);  
+};
+$(".pages .p-content").on('click','a',function () {
+    var cur=$(this).attr("data-p");
+    $(this).addClass("cur").siblings().removeClass("cur");
+    getdata(cur)//cur 当前页
+})
+
+
+function getNewData(){ 
+  $.ajax({          
+        url:"/getNewData",  
+        type:"GET",   
+        success:function(data){ 
+        	if(data!="null"){
+        		//getproducts();
+        		getdata(_c);
+                var obj2 = $.parseJSON(data);
+                showView(obj2);
+        	}
+          console.info(data);  
+    },      
+        error:function(){}
+  });  
+}
+
+function showView(data){ 
+    if(data.name){  
+		$("#TPname").html("姓名："+data.name+"<br>温度："+data.temp+"<br>"+data.record_time); 
+    }
+	$('#pic').attr('src',  data.image_Url);
+	
+}
+
+function showViewData(name,temp,image,record_time){  
+		$("#TPname").html(name+"<br>"+temp+"<br>"+record_time);  
+	$('#pic').attr('src',  image);
+	
+} 
+</script>
+</body>
+</html>

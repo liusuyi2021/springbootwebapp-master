@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.synjones.springframework.dao.ProductDao"> 
+	<select id="findById" resultType="Product" parameterType="Long">
+		select * from product where id=#{id};
+	</select>
+	<select id="findAll" resultType="Product" >
+		select * from product order by id desc;
+	</select>
+	
+	<select id="findAllGW" resultType="Product" >
+		select * from product 
+		<where>
+	        <if test="name != null and name != '' ">
+	            and name like concat(concat('%', #{name}), '%')
+	        </if>  
+	        <if test="temp != null and temp != '' ">
+	            and temp &gt; ${temp}
+	        </if> 
+    	</where>
+		order by id desc  limit #{size} offset #{offset}
+	</select>
+	<select id="findAllGW_count" resultType="Long">
+		select count(1) from product
+			<where>
+		        <if test="name != null and name != '' ">
+		            and name like concat(concat('%', #{name}), '%')
+		        </if>  
+		        <if test="temp != null and temp != '' ">
+		            and temp &gt; ${temp}
+		        </if> 
+	    	</where>
+	</select>
+	<insert id="addDept" parameterType="Product">
+		INSERT INTO product(name,temp) VALUES(#{name},DATABASE());
+	</insert> 
+</mapper>
+ 
+
